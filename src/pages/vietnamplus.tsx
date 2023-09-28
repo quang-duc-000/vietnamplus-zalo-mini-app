@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { createRef, useEffect, useRef, useState } from "react";
 import { List, Page, Icon, useNavigate, Button, Swiper } from "zmp-ui";
 import { openWebview } from "zmp-sdk/apis"
 import SVGFire from "../assets/icons/local_fire_department.svg?react";
@@ -7,10 +7,12 @@ import SVGSport from "../assets/icons/sports_handball.svg?react";
 import SVGCurrency from "../assets/icons/currency_exchange.svg?react";
 import SVGFlowsheet from "../assets/icons/flowsheet.svg?react";
 import SVGVolunteer from "../assets/icons/volunteer_activism.svg?react";
+import { SwiperRefObject } from "zmp-ui/swiper";
 
 const VietnamPlusPage: React.FunctionComponent = () => {
   const navigate = useNavigate();
   const [currentBanner, setBanner] = useState(0)
+  const swiperEl = useRef<SwiperRefObject>(null)
 
   const ItemsNavigate = [
     {
@@ -58,17 +60,29 @@ const VietnamPlusPage: React.FunctionComponent = () => {
     },
   ]
 
-  const duration = 3000
+  function nextBanner() {
+    if (!swiperEl.current) return;
+    const currentActive = swiperEl.current.activeIndex
 
-  function setIndex(i: number) {
-    setBanner(i)
+    if (currentActive < SwtichBanner.length - 1) {
+      swiperEl.current.next()
+      setBanner(currentActive + 1)
+    } else if (currentActive === SwtichBanner.length - 1) {
+      swiperEl.current.goTo(0)
+      setBanner(0)
+    }
   }
+
+  useEffect(() => {
+    const intervel = setInterval(nextBanner, 3000)
+    return () => clearInterval(intervel)
+  }, [])
 
   return (
     <Page className="px-4 py-10 min-h-screen" hideScrollbar>
       <h1 className="text-2xl font-black text-primary mb-5">Vietnamplus</h1>
 
-      <Swiper className="mb-4" autoplay duration={duration} afterChange={setIndex}>
+      <Swiper ref={swiperEl} className="mb-4" afterChange={(i) => setBanner(i)}>
         {SwtichBanner.map((item, i) => (<Swiper.Slide>
           <img
             key={i}
@@ -106,7 +120,7 @@ const VietnamPlusPage: React.FunctionComponent = () => {
       </a>
 
       <p className="text-center text-sm font-black mt-8">Phiên bản 1.0.0</p>
-    </Page>
+    </Page >
   );
 };
 
